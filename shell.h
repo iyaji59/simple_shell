@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 extern char **environ;
-void execute_command(char *command);
+void execute_command(char **command);
+void split_line(char *line, char **args);
 char *readline(void);
 size_t _strlen(char *ch);
 #endif
