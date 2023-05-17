@@ -1,17 +1,22 @@
 #include "shell.h"
-#include "readline.c"
-#include <stdlib.h>
-#include <stdio.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/wait.h>
+#include <string.h>
+#include <sys/types.h>
+#include "readline.c"
 /**
- * main - main shell entry
- * @argc: argument count
+ * main - main function
+ * @ac: argument count
  * @argv: argument value
- * Return: return 0 for success
+ * Return: return 0
  */
-int main(int argc, char **argv)
+int main(void)
 {
-	readline();
+	while(1)
+	{
+		readline();
+	}
 	return (0);
 }

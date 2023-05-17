@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #define DELIM_BUFSIZE 64
 #define TOK_DELIM " \t\r\n\a"
+#define MAX_COMMAND_LENGTH 100
+#define MAX_ARGS 10
 /**
  * readline - reads input from user
  */
@@ -34,8 +36,20 @@ char *readline(void)
 		}
 		char *args[DELIM_BUFSIZE + 1];
 
-		split_line(command, args);
-		execute_command(args);
+		int arg_count = split_line(command, args);
+		if (arg_count > 0)
+		{
+			char *path = find_command(args[0]);
+
+			if (path != NULL)
+			{
+				execute_command(path, args);
+			}
+			else
+			{
+				perror("Command not found:%s\n");
+			}
+		}
 
 	}
 	free(command);
@@ -47,7 +61,7 @@ char *readline(void)
  * execute_command - execute user input
  * @command: user input
  */
-void execute_command(char **command)
+void execute_command(char *command, char **args)
 {
 	pid_t pid = fork();
 
@@ -58,13 +72,14 @@ void execute_command(char **command)
 	}
 	else if (pid == 0)
 	{
-		execve(command[0], command, environ);
+		execve(command, args, environ);
 		perror("./shell");
 		exit(EXIT_FAILURE);
 	}
 	else
 	{
-		waitpid(pid, NULL, 0);
+		int status;
+		waitpid(pid, &status, 0);
 	}
 }
 /**
@@ -73,7 +88,7 @@ void execute_command(char **command)
  * @args: array to store tokenize input
  * Return: tokenize string
  */
-void split_line(char *line, char **args)
+int split_line(char *line, char **args)
 {
 	char *token;
 	int argc = 0;
@@ -86,4 +101,39 @@ void split_line(char *line, char **args)
 		token = strtok(NULL, TOK_DELIM);
 	}
 	args[argc] = NULL;
+}
+/**
+ *
+ */
+char *find_command(char *command) {
+    static char full_path[MAX_COMMAND_LENGTH];
+    if (strchr(command, '/') != NULL) {
+        if (access(command, X_OK) == 0) {
+            strncpy(full_path, command, sizeof(full_path));
+            return full_path;
+        }
+        return NULL;
+    }
+    snprintf(full_path, sizeof(full_path), "/bin/%s", command);
+    if (access(full_path, X_OK) == 0) {
+        return full_path;
+    }
+    char *path = getenv("PATH");
+
+    if (path == NULL) {
+        fprintf(stderr, "PATH environment variable not set\n");
+        return NULL;
+    }
+    char *token;
+    char *saveptr;
+
+    token = strtok_r(path, ":", &saveptr);
+    while (token != NULL) {
+        snprintf(full_path, sizeof(full_path), "%s/%s", token, command);
+        if (access(full_path, X_OK) == 0) {
+            return full_path;
+        }
+        token = strtok_r(NULL, ":", &saveptr);
+    }
+    return NULL;
 }
