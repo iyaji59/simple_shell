@@ -49,11 +49,23 @@ char *find_command(char *command) {
     return full_path;
 }
 void execute_command(char *command, char **args) {
-    execve(command, args, environ);
+    pid_t pid = fork();
 
-    // execve only returns if an error occurs
-    perror("Command execution failed");
-    exit(1);
+    if (pid < 0) {
+        perror("Fork failed");
+        exit(1);
+    } else if (pid == 0) {
+        // Child process
+        execve(command, args, environ);
+
+        // execve only returns if an error occurs
+        perror("Command execution failed");
+        exit(1);
+    } else {
+        // Parent process
+        int status;
+        waitpid(pid, &status, 0);
+    }
 }
 
 int parse_arguments(char *command, char **args) {
