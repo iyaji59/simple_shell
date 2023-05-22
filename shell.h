@@ -20,4 +20,5 @@ int _strcmp(char *s1, char *s2);
 int _strlen(char *s);
 char *_getenv(char *name);
 char *_strcpy(char *dest, char *src);
+void log_ops(char *line, ssize_t *line_new);
 #endif
