@@ -7,7 +7,7 @@
  * @name: name to get environmental value of
  * Return: return env or NULL
  */
-char *_getenv(const char *name)
+char *_getenv(char *name)
 {
 	char **env = environ;
 	size_t len = strlen(name);
