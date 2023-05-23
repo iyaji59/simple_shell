@@ -59,8 +59,9 @@ ssize_t my_getline(char **lineptr, size_t *n) {
     // If the buffer is exhausted but no end of line found, call my_getline recursively
     ssize_t bytes_read_next = my_getline(lineptr, n);
     if (bytes_read_next == -1) {
+	free(*lineptr);
+	*lineptr = NULL;
         return -1;  // Error or end of file
     }
-
     return bytes_read + bytes_read_next;
 }

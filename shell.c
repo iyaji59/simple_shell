@@ -10,8 +10,22 @@
 #include "2-getline.c"
 #include "2-getenv.c"
 #include "cd.c"
+#include "alias.c"
 #define MAX_COMMAND_LENGTH 100
 #define MAX_ARGS 10
+char exit_status_variable[16];
+void replace_variable(char *arg, const char *variable, const char *replacement) {
+    char *variable_ptr = strstr(arg, variable);
+    if (variable_ptr != NULL) {
+        char new_arg[MAX_COMMAND_LENGTH];
+        strncpy(new_arg, arg, variable_ptr - arg);
+        new_arg[variable_ptr - arg] = '\0';
+        strncat(new_arg, replacement, sizeof(new_arg) - strlen(new_arg) - 1);
+        strcat(new_arg, variable_ptr + strlen(variable));
+        strcpy(arg, new_arg);
+    }
+}
+int parse_arguments(char *command, char **args);
 void prompt() {
     write(STDOUT_FILENO, "$ ", 2);
 }
@@ -48,6 +62,11 @@ char *find_command(char *command) {
     }
     return full_path;
 }
+char *getpid_str() {
+    static char pid_str[16];
+    sprintf(pid_str, "%d", getpid());
+    return pid_str;
+}
 void execute_command(char *command, char **args) {
     pid_t pid = fork();
 
@@ -56,6 +75,14 @@ void execute_command(char *command, char **args) {
         exit(1);
     } else if (pid == 0) {
         // Child process
+        // Replace variable in each argument
+        for (int i = 0; args[i] != NULL; i++) {
+            replace_variable(args[i], "$?", exit_status_variable);
+            replace_variable(args[i], "$$", getpid_str());
+        }
+
+        char *envp[] = { NULL }; // Empty environment for execve
+
         execve(command, args, environ);
 
         // execve only returns if an error occurs
@@ -65,9 +92,29 @@ void execute_command(char *command, char **args) {
         // Parent process
         int status;
         waitpid(pid, &status, 0);
+        sprintf(exit_status_variable, "%d", WEXITSTATUS(status));
     }
 }
+void execute_commands(char *command, char **args) {
+    char *semicolon = strchr(command, ';');
 
+    if (semicolon != NULL) {
+        char *token = my_strtok(command, ";");
+
+        while (token != NULL) {
+            char *trimmed_command = strtok(token, " \t");
+            if (trimmed_command != NULL) {
+                char *trimmed_args[MAX_ARGS];
+                int arg_count = parse_arguments(trimmed_command, trimmed_args);
+                execute_command(trimmed_command, trimmed_args);
+            }
+
+            token = my_strtok(NULL, ";");
+        }
+    } else {
+        execute_command(command, args);
+    }
+}
 int parse_arguments(char *command, char **args) {
     int i = 0;
     char *token = my_strtok(command, " ");
@@ -140,6 +187,20 @@ int main() {
     		}
     		continue;
             }
+	     char *comment_ptr = strchr(command, '#');
+             if (comment_ptr != NULL) {
+                     *comment_ptr = '\0'; // Remove everything after the comment symbol
+            // Trim trailing whitespace
+                      int i = strlen(command) - 1;
+                       while (i >= 0 && command[i] == ' ') {
+                                   command[i] = '\0';
+                                        i--;
+                         }
+	     }
+	     if (strcmp(args[0], "alias") == 0) {
+                    process_alias_command(args);
+                         continue;
+             }
             char *command_path = find_command(args[0]);
 
             if (command_path != NULL) {

@@ -6,6 +6,7 @@
 void custom_cd(const char *directory) {
     char *home = getenv("HOME");
     char *previous = getenv("PWD");
+    char cwd[PATH_MAX];
 
     if (directory == NULL || strcmp(directory, "~") == 0) {
         if (home == NULL) {
@@ -21,17 +22,23 @@ void custom_cd(const char *directory) {
         directory = previous;
     }
 
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        fprintf(stderr, "cd: Failed to get current directory\n");
+        return;
+    }
+
     if (chdir(directory) != 0) {
         fprintf(stderr, "cd: Failed to change directory\n");
         return;
     }
 
-    char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) != NULL) {
-        setenv("PWD", cwd, 1);
-        setenv("OLDPWD", previous, 1);
-    } else {
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
         fprintf(stderr, "cd: Failed to update PWD\n");
         return;
     }
+
+    if (previous != NULL) {
+        setenv("OLDPWD", previous, 1);
+    }
+    setenv("PWD", cwd, 1);
 }
