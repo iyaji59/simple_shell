@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+void process_alias_command(char **args);
+void add_alias(char *name, char *value);
+void print_aliases();
+void execute_commands(char *command, char **args);
 void custom_cd(const char *directory);
 extern char **environ;
 int _unsetenv(const char *name);
