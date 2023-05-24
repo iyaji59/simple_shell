@@ -1,8 +1,6 @@
 #include "shell.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "4-strcpy.c"
-#include "2-strlen.c"
 /**
  * _strdup - duplicates a string
  * @str: string to duplicate

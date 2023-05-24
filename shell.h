@@ -5,15 +5,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+char *_strpbrk(char *s, char *accept);
+int _strncmp(char *str1, char *str2, size_t n);
+char *search_in_path(char *command);
 void process_alias_command(char **args);
 void add_alias(char *name, char *value);
 void print_aliases();
 void execute_commands(char *command, char **args);
 void custom_cd(const char *directory);
 extern char **environ;
-int _unsetenv(const char *name);
-int _setenv(const char *name, const char *value, int overwrite);
-char *my_strtok(char *str, const char *delim);
+int _unsetenv(char *name);
+int _setenv(char *name, char *value, int overwrite);
+char *my_strtok(char *str, char *delim);
 ssize_t my_getline(char **lineptr, size_t *n);
 char *_strcat(char *dest, char *src);
 char *_strdup(char *str);

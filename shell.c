@@ -11,6 +11,16 @@
 #include "2-getenv.c"
 #include "cd.c"
 #include "alias.c"
+#include "2-strchr.c"
+#include "2-strlen.c"
+#include "2-strncpy.c"
+#include "3-strcmp.c"
+#include "3-strspn.c"
+#include "4-strcpy.c"
+#include "4-strpbrk.c"
+#include "5-strdup.c"
+#include "path.c"
+#include "2-strncmp.c"
 #define MAX_COMMAND_LENGTH 100
 #define MAX_ARGS 10
 char exit_status_variable[16];
@@ -29,39 +39,6 @@ int parse_arguments(char *command, char **args);
 void prompt() {
     write(STDOUT_FILENO, "$ ", 2);
 }
-char *find_command(char *command) {
-    static char full_path[MAX_COMMAND_LENGTH];
-
-    if (strchr(command, '/') == NULL) {
-        char *path = _getenv("PATH");
-
-        if (path == NULL) {
-            fprintf(stderr, "PATH environment variable not set\n");
-            return NULL;
-        }
-        char *token;
-        token = my_strtok(path, ":");
-
-        while (token != NULL) {
-            int path_length = snprintf(full_path, sizeof(full_path), "%s/%s", token, command);
-            if (path_length >= sizeof(full_path)) {
-                fprintf(stderr, "Command path is too long\n");
-                return NULL;
-            }
-            if (access(full_path, X_OK) == 0) {
-                return full_path;
-            }
-            token = my_strtok(NULL, ":");
-        }
-        snprintf(full_path, sizeof(full_path), "/bin/%s", command);
-    } else {
-        if (access(command, X_OK) != 0) {
-            return NULL;
-        }
-        strncpy(full_path, command, sizeof(full_path) - 1);
-    }
-    return full_path;
-}
 char *getpid_str() {
     static char pid_str[16];
     sprintf(pid_str, "%d", getpid());
@@ -74,45 +51,18 @@ void execute_command(char *command, char **args) {
         perror("Fork failed");
         exit(1);
     } else if (pid == 0) {
-        // Child process
-        // Replace variable in each argument
-        for (int i = 0; args[i] != NULL; i++) {
+	int i;
+        for (i = 0; args[i] != NULL; i++) {
             replace_variable(args[i], "$?", exit_status_variable);
             replace_variable(args[i], "$$", getpid_str());
         }
-
-        char *envp[] = { NULL }; // Empty environment for execve
-
         execve(command, args, environ);
-
-        // execve only returns if an error occurs
         perror("Command execution failed");
         exit(1);
     } else {
-        // Parent process
         int status;
         waitpid(pid, &status, 0);
         sprintf(exit_status_variable, "%d", WEXITSTATUS(status));
-    }
-}
-void execute_commands(char *command, char **args) {
-    char *semicolon = strchr(command, ';');
-
-    if (semicolon != NULL) {
-        char *token = my_strtok(command, ";");
-
-        while (token != NULL) {
-            char *trimmed_command = strtok(token, " \t");
-            if (trimmed_command != NULL) {
-                char *trimmed_args[MAX_ARGS];
-                int arg_count = parse_arguments(trimmed_command, trimmed_args);
-                execute_command(trimmed_command, trimmed_args);
-            }
-
-            token = my_strtok(NULL, ";");
-        }
-    } else {
-        execute_command(command, args);
     }
 }
 int parse_arguments(char *command, char **args) {
@@ -159,12 +109,12 @@ int main() {
                  int exit_status = atoi(args[1]);
                  exit_shell(exit_status);
                 } else {
-                    // No exit status provided, exit with 0
+                   
                     exit_shell(0);
                 }
             }
 	     else if (strcmp(args[0], "setenv") == 0) {
-                // Set environment variable
+              
                 if (arg_count != 3) {
                     fprintf(stderr, "Usage: setenv VARIABLE VALUE\n");
                 } else {
@@ -172,7 +122,6 @@ int main() {
                 }
 	     }
 	     else if (strcmp(args[0], "unsetenv") == 0) {
-                // Unset environment variable
                 if (arg_count != 2) {
                     fprintf(stderr, "Usage: unsetenv VARIABLE\n");
                 } else {
@@ -186,16 +135,7 @@ int main() {
         		custom_cd(NULL);
     		}
     		continue;
-            }
-	     char *comment_ptr = strchr(command, '#');
-             if (comment_ptr != NULL) {
-                     *comment_ptr = '\0'; // Remove everything after the comment symbol
-            // Trim trailing whitespace
-                      int i = strlen(command) - 1;
-                       while (i >= 0 && command[i] == ' ') {
-                                   command[i] = '\0';
-                                        i--;
-                         }
+            
 	     }
 	     if (strcmp(args[0], "alias") == 0) {
                     process_alias_command(args);
