@@ -1,155 +1,126 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include "2-setenv.c"
 #include "shell.h"
-#include "2-strtok.c"
-#include "2-getline.c"
-#include "2-getenv.c"
-#include "cd.c"
-#include "alias.c"
-#include "2-strchr.c"
-#include "2-strlen.c"
-#include "2-strncpy.c"
-#include "3-strcmp.c"
-#include "3-strspn.c"
-#include "4-strcpy.c"
-#include "4-strpbrk.c"
-#include "5-strdup.c"
-#include "path.c"
-#include "2-strncmp.c"
-#define MAX_COMMAND_LENGTH 100
-#define MAX_ARGS 10
-char exit_status_variable[16];
-void replace_variable(char *arg, const char *variable, const char *replacement) {
-    char *variable_ptr = strstr(arg, variable);
-    if (variable_ptr != NULL) {
-        char new_arg[MAX_COMMAND_LENGTH];
-        strncpy(new_arg, arg, variable_ptr - arg);
-        new_arg[variable_ptr - arg] = '\0';
-        strncat(new_arg, replacement, sizeof(new_arg) - strlen(new_arg) - 1);
-        strcat(new_arg, variable_ptr + strlen(variable));
-        strcpy(arg, new_arg);
-    }
-}
-int parse_arguments(char *command, char **args);
-void prompt() {
-    write(STDOUT_FILENO, "$ ", 2);
-}
-char *getpid_str() {
-    static char pid_str[16];
-    sprintf(pid_str, "%d", getpid());
-    return pid_str;
-}
-void execute_command(char *command, char **args) {
-    pid_t pid = fork();
 
-    if (pid < 0) {
-        perror("Fork failed");
-        exit(1);
-    } else if (pid == 0) {
-	int i;
-        for (i = 0; args[i] != NULL; i++) {
-            replace_variable(args[i], "$?", exit_status_variable);
-            replace_variable(args[i], "$$", getpid_str());
-        }
-        execve(command, args, environ);
-        perror("Command execution failed");
-        exit(1);
-    } else {
-        int status;
-        waitpid(pid, &status, 0);
-        sprintf(exit_status_variable, "%d", WEXITSTATUS(status));
-    }
-}
-int parse_arguments(char *command, char **args) {
-    int i = 0;
-    char *token = my_strtok(command, " ");
-
-    while (token != NULL) {
-        args[i] = token;
-        i++;
-        token = my_strtok(NULL, " ");
-    }
-
-    args[i] = NULL;
-
-    return i;
-}
 /**
+ * read_input - reads input from the terminal
+ * @is_separated: flag indicating if the input is separated
  *
+ * Return: input string or NULL on failure
  */
-void exit_shell(int status) {
-    exit(status);
-}
-/**
- *
- */
-int main() {
-    char *command = NULL;
-    size_t bufsize = 0;
+char *read_input(int *is_separated)
+{
+    char *input = NULL;
+    size_t buf_size = 0;
     ssize_t bytes_read;
 
-    while (1){
-        prompt();
-	bytes_read = my_getline(&command, &bufsize);
-        if (bytes_read == -1) {
-            break;
-        }
-        command[strcspn(command, "\n")] = '\0';
-        char *args[MAX_ARGS];
-        int arg_count = parse_arguments(command, args);
-
-        if (arg_count > 0) {
-	     if (strcmp(args[0], "exit") == 0) {
-		 if (arg_count > 1) {
-                 int exit_status = atoi(args[1]);
-                 exit_shell(exit_status);
-                } else {
-                   
-                    exit_shell(0);
-                }
-            }
-	     else if (strcmp(args[0], "setenv") == 0) {
-              
-                if (arg_count != 3) {
-                    fprintf(stderr, "Usage: setenv VARIABLE VALUE\n");
-                } else {
-                    custom_setenv(args[1], args[2]);
-                }
-	     }
-	     else if (strcmp(args[0], "unsetenv") == 0) {
-                if (arg_count != 2) {
-                    fprintf(stderr, "Usage: unsetenv VARIABLE\n");
-                } else {
-                    custom_unsetenv(args[1]);
-                }
-	     }
-	     if (strcmp(args[0], "cd") == 0) {
-    		if (arg_count > 1) {
-        		custom_cd(args[1]);
-    		} else {
-        		custom_cd(NULL);
-    		}
-    		continue;
-            
-	     }
-	     if (strcmp(args[0], "alias") == 0) {
-                    process_alias_command(args);
-                         continue;
-             }
-            char *command_path = find_command(args[0]);
-
-            if (command_path != NULL) {
-                execute_command(command_path, args);
-            } else {
-                fprintf(stderr, "Command not found: %s\n", args[0]);
-            }
-        }
+    if (*is_separated == FALSE)
+    {
+        if (isatty(STDIN_FILENO) == 1)
+            write(STDOUT_FILENO, "my_shell$ ", 10);
+        bytes_read = getline(&input, &buf_size, stdin);
+        if (bytes_read == -1)
+            return NULL;
+        if (bytes_read == 1)
+            return input;
+        input[bytes_read - 1] = '\0';
+        input = input_san(input, &buf_size);
+        if (buf_size == 0)
+            return input;
     }
-    free(command);
-    return 0;
+    else
+    {
+        input = NULL;
+        bytes_read = getline(&input, &buf_size, stdin);
+        if (bytes_read == -1)
+            return NULL;
+        if (bytes_read == 1)
+            return input;
+        input[bytes_read - 1] = '\0';
+        input = input_san(input, &buf_size);
+        if (buf_size == 0)
+            return input;
+        *is_separated = FALSE;
+    }
+    return input;
+}
+
+/**
+ * execute_command - executes a single command
+ * @input: input command to execute
+ * @is_separated: flag indicating if the input is separated
+ * @line_num: current line number
+ *
+ * Return: command status
+ */
+int exec(char *input, int *is_separated, int *line_num)
+{
+    char *buf_ptr;
+    char *buf_tmp;
+    char **args = NULL;
+    int status;
+
+    buf_ptr = input;
+    buf_tmp = NULL;
+
+    args = make_array(buf_ptr, ' ', &buf_tmp);
+
+    status = command_manager(args);
+
+    free(args);
+
+    if (*is_separated == FALSE)
+        (*line_num)++;
+
+    return status;
+}
+
+/**
+ * execute_shell - executes commands from the terminal
+ *
+ * Return: shell exit status
+ */
+int execute_shell(void)
+{
+    int is_separated = FALSE;
+    int line_num = 1;
+    char *input = NULL;
+    int exit_status = 0; // Local variable to store exit status
+    char *shell_name = _strdup("my_shell");
+
+    environ = array_cpy(environ, list_len(environ, NULL));
+
+    signal(SIGINT, SIG_IGN);
+
+    while (1)
+    {
+        input = read_input(&is_separated);
+
+        if (input == NULL)
+            break;
+
+        char **args = make_array(input, ' ', NULL);
+        exit_status = exec(args);
+        free(args);
+
+        free(input);
+
+        if (exit_status == EXIT_SHELL)
+            break;
+    }
+
+    free_array(environ);
+    free(shell_name);
+
+    return exit_status;
+}
+/**
+ * main - entry point of the program
+ * @ac: number of inputs from main
+ * @av: array of inputs from main
+ *
+ * Return: 0, or another number if desired
+ */
+int main(__attribute__((unused)) int ac, __attribute__((unused)) char **av)
+{
+    int exit_status = execute_shell();
+    return (exit_status % 256);
 }
