@@ -7,11 +7,10 @@ int line_num = 1;
 char *shell_name = NULL;
 
 /**
- * main - executes commands from the terminal
- * @ac: number of inputs from main
- * @av: array of inputs from main
- *
- * Return: 0, or another number if desired
+ * main - entry point of terminal
+ * @ac: args count
+ * @av: args value
+ * Return: success or failure
  */
 int main(__attribute__((unused))int ac, char **av)
 {
@@ -25,11 +24,8 @@ int main(__attribute__((unused))int ac, char **av)
 	char **args = NULL;
 
 	shell_name = _strdup(*av);
-
 	environ = array_cpy(environ, list_len(environ, NULL));
-
 	signal(SIGINT, SIG_IGN);
-
 	buf = malloc(1);
 	if (buf == NULL)
 		exit(EXIT_FAILURE);

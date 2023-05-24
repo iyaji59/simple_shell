@@ -7,11 +7,10 @@ int line_num;
 char *shell_name;
 
 /**
- * input_san - sanitizes input from the command line
- * @old_buf: buffer to be sanitized
- * @old_size: size of old buffer
- *
- * Return: the new, sanitized buffer
+ * input_san - process input from cmd
+ * @old_buf: buffer
+ * @old_size: size of buffer
+ * Return: the new buffer
  */
 char *input_san(char *old_buf, size_t *old_size)
 {
@@ -75,10 +74,9 @@ char *input_san(char *old_buf, size_t *old_size)
 }
 
 /**
- * input_err_check - helper function for sanitizer, check for unexpected char
- * @ptr: pointer to area that needs to be checked
- *
- * Return: TRUE if no error, FALSE if error
+ * input_err_check - check for errors
+ * @ptr: pointer to error check
+ * Return: TRUE or FALSE
  */
 int input_err_check(char *ptr)
 {
@@ -106,9 +104,9 @@ int input_err_check(char *ptr)
 }
 
 /**
- * err_message - prints error messages and sets status
- * @arg0: command that is causing error
- * @arg1: first argument to command
+ * err_message - print error message to stdin
+ * @arg0: command
+ * @arg1: args
  */
 void err_message(char *arg0, char *arg1)
 {
@@ -153,11 +151,9 @@ void err_message(char *arg0, char *arg1)
 }
 
 /**
- * check_for_vars - checks an argument to see if it is a variable and if so,
- * replaces it with it's value
- * @arg: argument to be checked
- *
- * Return: a pointer to the evaluated argument (either new or an altered clone)
+ * check_for_vars - checks for env var
+ * @arg: argument
+ * Return: a pointer to args
  */
 char *check_for_vars(char *arg)
 {

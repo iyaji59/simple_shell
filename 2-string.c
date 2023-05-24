@@ -1,10 +1,9 @@
 #include "shell.h"
 
 /**
- *  _strlen - returns length of a string
- * @str: string to be evaluated
- *
- * Return: the length of the string
+ *  _strlen - finds length of a string
+ * @str: string whose length is being sought after
+ * Return: the length
  */
 int _strlen(char *str)
 {
@@ -25,8 +24,7 @@ int _strlen(char *str)
 /**
  * _strdup - allocates a space in memory for a copy of a string
  * @src: string a copy is made of
- *
- * Return: a pointer to the copy, or NULL if failure
+ * Return: pointer to memory or NULL
  */
 char *_strdup(char *src)
 {
@@ -34,6 +32,8 @@ char *_strdup(char *src)
 	char *dest = malloc(len + 1);
 	char *ptr;
 
+	if (src == NULL)
+		return NULL;
 	if (dest == NULL)
 		exit(EXIT_FAILURE);
 
@@ -52,18 +52,23 @@ char *_strdup(char *src)
 }
 
 /**
- * str_concat - concatenates two strings
+ * str_concat - concate 2 strings
  * @s1: first string
  * @s2: second string
- *
- * Return: a pointer to the new string, or NULL if failure
+ * Return: a pointer or FAILURE
  */
 char *str_concat(char *s1, char *s2)
 {
-	int len = _strlen(s1) + _strlen(s2);
+	int len1 = (s1 != NULL) ? _strlen(s1) : 0;
+	int len2 = (s2 != NULL) ? _strlen(s2) : 0;
+	int len = len1 + len2;
 	char *dest = malloc(len + 1);
 	char *ptr = dest;
 
+	if (dest == NULL)
+	{
+		exit(EXIT_FAILURE);
+	}
 	if (s1 != NULL)
 	{
 		while (*s1 != '\0')
@@ -73,7 +78,6 @@ char *str_concat(char *s1, char *s2)
 			s1++;
 		}
 	}
-
 	if (s2 != NULL)
 	{
 		while (*s2 != '\0')
@@ -83,19 +87,14 @@ char *str_concat(char *s1, char *s2)
 			s2++;
 		}
 	}
-
 	*ptr = '\0';
-
-	return (dest);
+	return dest;
 }
-
 /**
  * str_compare - compare two string
- * @s1: string to be compared
- * @s2: string to be compared
- * @pref_or_match: if string needs to be matched exactly or if just a prefix
- * needs to be matched
- *
+ * @s1: first string
+ * @s2: second string
+ * @pref_or_match: prefix
  * Return: difference between strings
  */
 int str_compare(char *s1, char *s2, int pref_or_match)

@@ -1,13 +1,9 @@
 #include "shell.h"
-
 int status;
-
 char *shell_name;
-
 /**
- * command_manager - manages the process a command goes through to get executed
- * @args: command and arguments
- *
+ * command_manager - manages command
+ * @args: command and Tokens
  * Return: TRUE if success, FALSE if failure
  */
 int command_manager(char **args)
@@ -62,11 +58,9 @@ int command_manager(char **args)
 }
 
 /**
- * built_ins - checks if a command is a built in
- * @args: command and arguments
- *
- * Return: SKIP_FORK if built in, DO_EXECVE if not a built in, EXIT_SHELL if
- * exit shell, EXIT_SHELL_CODE if exiting with a particular code
+ * built_ins - function to check if it's a built-in or not
+ * @args: command and tokens
+ * Return: Don't fork parent process, if it's not a valid command
  */
 int built_ins(char **args)
 {
@@ -131,11 +125,10 @@ int built_ins(char **args)
 }
 
 /**
- * and_or - deals with command line logical operators
- * @args: command and arguments
- * @operator: first char of logical operator
- * @last_compare: if last command in logic evaluated to true or false
- *
+ * and_or - handle cmd operators
+ * @args: command and tokens
+ * @operator: operators encountered on cmd
+ * @last_compare: last operator
  * Return: if this command evaluates to true or false
  */
 int and_or(char **args, char operator, int last_compare)
@@ -181,10 +174,9 @@ int and_or(char **args, char operator, int last_compare)
 }
 
 /**
- * check_command - checks if a non-built-in exists
- * @args: argument and commands
- *
- * Return: TRUE if valid command, FALSE if not
+ * check_command - checks if a cmd is built-in or not
+ * @args: command and args
+ * Return: TRUE or FALSE for either state
  */
 char *check_command(char **args)
 {
@@ -271,8 +263,7 @@ char *check_command(char **args)
 
 /**
  * execute_command - executes a command
- * @args: command and arguments
- *
+ * @args: array of cmd and args
  * Return: TRUE or EXIT_SHELL
  */
 int execute_command(char **args)

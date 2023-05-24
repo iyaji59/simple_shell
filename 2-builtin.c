@@ -161,12 +161,10 @@ int change_dir(char *name)
 }
 
 /**
- * alias_func - deals with command aliases
- * @args: arguments from command line
- * @to_free: indicated if aliases need to be freed (exiting shell);
- *
- * Return: TRUE if exiting, FALSE if the command is not "alias" or an alias,
- * SKIP_FORK if success
+ * alias_func - handles alias
+ * @args: name
+ * @to_free: alias to be freed
+ * Return: TRUE or FALSE
  */
 int alias_func(char **args, int to_free)
 {
@@ -214,8 +212,7 @@ int alias_func(char **args, int to_free)
 }
 
 /**
- * print_env - prints the environment
- *
+ * print_env - prints the environment variables and value
  * Return: TRUE
  */
 int print_env(void)

@@ -3,10 +3,9 @@
 int status;
 
 /**
- * free_aliases - frees all aliases
- * @alias_ptr: ptr to head of alias list
- *
- * Return: TRUE
+ * free_aliases - free alias
+ * @alias_ptr: pointer to head of linked list
+ * Return: Success
  */
 int free_aliases(alias *alias_ptr)
 {
@@ -25,11 +24,9 @@ int free_aliases(alias *alias_ptr)
 }
 
 /**
- * check_if_alias - if the alias command is not called, this will check if the
- * command is an alias, and if so replace it with it's value
- * @args: argument to be checked
- * @alias_ptr: points to list of aliases to be checked against
- *
+ * check_if_alias - if it's a command
+ * @args: args
+ * @alias_ptr: pointer to available alias
  * Return: TRUE
  */
 int check_if_alias(char **args, alias *alias_ptr)
@@ -47,8 +44,8 @@ int check_if_alias(char **args, alias *alias_ptr)
 }
 
 /**
- * print_aliases - prints all aliases in list
- * @alias_ptr: points to list of aliases
+ * print_aliases - prints to stdin
+ * @alias_ptr: pointer to alias
  *
  * Return: SKIP_FORK
  */
@@ -57,21 +54,20 @@ int print_aliases(alias *alias_ptr)
 	while (alias_ptr != NULL)
 	{
 		write(STDOUT_FILENO, alias_ptr->name, _strlen(alias_ptr->name));
-		write(STDOUT_FILENO, "=\'", 2);
+		write(STDOUT_FILENO, "=", 2);
 		write(STDOUT_FILENO, alias_ptr->value,
 		      _strlen(alias_ptr->value));
-		write(STDOUT_FILENO, "\'\n", 2);
+		write(STDOUT_FILENO, "\n", 2);
 		alias_ptr = alias_ptr->next;
 	}
 	return (SKIP_FORK);
 }
 
 /**
- * print_alias_value - prints the value of a particular alias
+ * print_alias_value - prints to stdin
  * @arg: name of alias
- * @alias_ptr: points to list of aliases
- *
- * Return: TRUE if valid alias, FALSE if not
+ * @alias_ptr: pointer to alias
+ * Return: TRUE or FALSE
  */
 int print_alias_value(char *arg, alias *alias_ptr)
 {
@@ -81,10 +77,10 @@ int print_alias_value(char *arg, alias *alias_ptr)
 		if (str_compare(arg, alias_ptr->name, MATCH) == TRUE)
 		{
 			write(STDOUT_FILENO, arg, _strlen(arg));
-			write(STDOUT_FILENO, "=\'", 2);
+			write(STDOUT_FILENO, "=", 2);
 			write(STDOUT_FILENO, alias_ptr->value,
 			      _strlen(alias_ptr->value));
-			write(STDOUT_FILENO, "\'\n", 2);
+			write(STDOUT_FILENO, "\n", 2);
 			return (TRUE);
 		}
 		alias_ptr = alias_ptr->next;
@@ -99,11 +95,10 @@ int print_alias_value(char *arg, alias *alias_ptr)
 }
 
 /**
- * set_alias_value - initializes an alias or resets its value if it exists
+ * set_alias_value - set alias or update existing value
  * @arg: name of alias
- * @alias_ptr: pointer to list of aliases
+ * @alias_ptr: pointer
  * @new_value: value of alias to be set
- *
  * Return: TRUE
  */
 int set_alias_value(char *arg, alias *alias_ptr, char *new_value)

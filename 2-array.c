@@ -1,11 +1,10 @@
 #include "shell.h"
 
 /**
- * get_array_element - gets an element of an array
- * @array: array to be searched
- * @element_name: name of element to be found
- *
- * Return: the array element, or NULL if it is not found
+ * get_array_element - element of an array
+ * @array: array being searched
+ * @element_name: element being searched for
+ * Return: the element found
  */
 char *get_array_element(char **array, char *element_name)
 {
@@ -24,9 +23,7 @@ char *get_array_element(char **array, char *element_name)
  * make_array - makes a list from a buffer
  * @str: the buffer
  * @delim: character to mark the end of a list entry
- * @if_sep: if the string has semicolons, if_sep becomes the location after the
- * semicolon
- *
+ * @if_sep: if the string has semicolons
  * Return: a pointer to the list
  */
 char **make_array(char *str, char delim, char **if_sep)
@@ -80,11 +77,10 @@ char **make_array(char *str, char delim, char **if_sep)
 }
 
 /**
- * list_len - finds the length of a list, or the index of an entry
- * @list: list to be evaluated
+ * list_len - finds the index of an entry
+ * @list: array to be evaluated
  * @entry: entry to be indexed
- *
- * Return: length or index if success, -1 if failure
+ * Return: returns index
  */
 int list_len(char **list, char *entry)
 {
@@ -116,10 +112,9 @@ int list_len(char **list, char *entry)
 }
 
 /**
- * array_cpy - copies an array
- * @old_array: array to be copied
+ * array_cpy - duplicates an array
+ * @old_array: source array
  * @new_size: size of new array
- *
  * Return: the new array
  */
 char **array_cpy(char **old_array, int new_size)
@@ -142,9 +137,8 @@ char **array_cpy(char **old_array, int new_size)
 }
 
 /**
- * free_array - frees a two dimensional array
+ * free_array - frees array
  * @args: array to be freed
- *
  * Return: TRUE
  */
 int free_array(char **args)

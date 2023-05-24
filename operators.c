@@ -1,10 +1,9 @@
 #include "shell.h"
 
 /**
- * _itoa - converts an int into a string
- * @n: int to be converted
- *
- * Return: the converted number
+ * _itoa - convets an integer to a string
+ * @n: integer to be converted
+ * Return: buf
  */
 char *_itoa(int n)
 {
@@ -61,10 +60,9 @@ char *_itoa(int n)
 }
 
 /**
- * _atoi - converts a string into a number
+ * _atoi - converts a string to an integer
  * @s: string to be converted
- *
- * Return: the converted number
+ * Return: converted int n
  */
 int _atoi(char *s)
 {
