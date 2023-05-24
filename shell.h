@@ -2,6 +2,7 @@
 #define SHELL_H
 
 #include <unistd.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
@@ -28,4 +29,7 @@ int _strlen(char *s);
 char *_getenv(char *name);
 char *_strcpy(char *dest, char *src);
 void log_ops(char *line, ssize_t *line_new);
+void line_handler(char **line, ssize_t read);
+ssize_t _get_new_len(char *line);
+void log_ops(char *line, ssize_t *new_len);
 #endif
