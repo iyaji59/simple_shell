@@ -80,6 +80,20 @@ int built_ins(char **args)
 			*args_ptr = NULL;
 			break;
 		}
+		if (str_compare("~", *args_ptr, MATCH) == TRUE
+		    && get_array_element(environ, "HOME=") != NULL)
+		{
+			*args_ptr = _strdup(get_array_element
+					(environ, "HOME=") + 5);
+			continue;
+		}
+		if (str_compare("~/", *args_ptr, PREFIX) == TRUE
+		    && get_array_element(environ, "HOME=") != NULL)
+		{
+			*args_ptr = str_concat(get_array_element
+					       (environ, "HOME=")
+					       + 5, *args_ptr + 1);
+		}
 		*args_ptr = check_for_vars(*args_ptr);
 
 		args_ptr++;
@@ -179,14 +193,14 @@ char *check_command(char **args)
 	char *path_str = NULL;
 	char *path_ptr;
 	char *path_tmp;
-	char **path_var;
+	char **path_var = NULL;
 	char **path_var_ptr;
 
 	if (access(*args, X_OK) == 0)
 		return (_strdup(*args));
 
-	if (get_array_element(environ, "PATH") != NULL)
-		path_str = _strdup(get_array_element(environ, "PATH") + 5);
+	if (get_array_element(environ, "PATH=") != NULL)
+		path_str = _strdup(get_array_element(environ, "PATH=") + 5);
 
 	path_ptr = path_str;
 
@@ -222,19 +236,23 @@ char *check_command(char **args)
 			path_ptr++;
 		}
 	}
+	if (path_str != NULL)
+		path_var = make_array(path_str, ':', NULL);
 
-	path_var = make_array(path_str, ':', NULL);
 	path_var_ptr = path_var;
 
 	command_buf = str_concat("/", *args);
 
 	full_buf = _strdup(command_buf);
 
-	while (*path_var_ptr != NULL && access(full_buf, X_OK) != 0)
+	if (path_var != NULL)
 	{
-		free(full_buf);
-		full_buf = str_concat(*path_var_ptr, command_buf);
-		path_var_ptr++;
+		while (*path_var_ptr != NULL && access(full_buf, X_OK) != 0)
+		{
+			free(full_buf);
+			full_buf = str_concat(*path_var_ptr, command_buf);
+			path_var_ptr++;
+		}
 	}
 
 	free(command_buf);
@@ -283,6 +301,8 @@ int execute_command(char **args)
 		wait(&status);
 		free(command_name);
 		fflush(stdin);
+		if (status != 0)
+		status = 2;
 	}
 
 	if (str_compare("false", *args, MATCH) == TRUE)

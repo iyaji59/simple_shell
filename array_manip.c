@@ -41,14 +41,18 @@ char **make_array(char *str, char delim, char **if_sep)
 			break;
 		if (*str_ptr == delim && *(str_ptr + 1) != '\0')
 			i++;
+
 		str_ptr++;
 	}
+
 	array = malloc(i * sizeof(char **));
 	if (array == NULL)
 		exit(EXIT_FAILURE);
+
 	array[0] = str;
 	str_ptr = str;
 	i = 1;
+
 	while (*str_ptr != '\0')
 	{
 		if (*str_ptr == delim)
@@ -71,8 +75,10 @@ char **make_array(char *str, char delim, char **if_sep)
 		str_ptr++;
 	}
 	array[i] = NULL;
+
 	return (array);
 }
+
 /**
  * list_len - finds the length of a list, or the index of an entry
  * @list: list to be evaluated

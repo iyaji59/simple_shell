@@ -122,7 +122,7 @@ void err_message(char *arg0, char *arg1)
 	if (str_compare("cd", arg0, MATCH) == TRUE)
 	{
 		status = 2;
-		write(STDERR_FILENO, ": cd: can't cd to", 17);
+		write(STDERR_FILENO, ": cd: can't cd to ", 18);
 		write(STDERR_FILENO, arg1, _strlen(arg1));
 		write(STDERR_FILENO, "\n", 1);
 		return;
@@ -165,6 +165,7 @@ char *check_for_vars(char *arg)
 	char *ptr = arg;
 	char *next;
 	char *tmp;
+	char *buffer;
 	int is_var;
 	int i;
 
@@ -181,6 +182,7 @@ char *check_for_vars(char *arg)
 			next = ptr + 1;
 			while (*next != '\0' && *next != '$' && *next != '#')
 				next++;
+
 			if (*next == '$' && next > ptr + 1)
 				is_var = TRUE;
 			else if (*next == '#')
@@ -195,9 +197,12 @@ char *check_for_vars(char *arg)
 			else if (str_compare("$0", ptr, MATCH) == TRUE)
 				tmp = _strdup(shell_name);
 			else if (get_array_element(environ, ptr + 1) != NULL)
+			{
+				buffer = str_concat(ptr + 1, "=");
 				tmp = _strdup(get_array_element
-					      (environ, ptr + 1)
-					      + _strlen(ptr));
+				(environ, buffer) + _strlen(buffer));
+				free(buffer);
+			}
 			else
 				tmp = _strdup("");
 

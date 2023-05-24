@@ -44,7 +44,7 @@ int main(__attribute__((unused))int ac, char **av)
 			bytes_read = getline(&buf, &buf_size, stdin);
 
 			if (bytes_read == -1)
-				exit(0);
+				break;
 			if (bytes_read == 1)
 			{
 				line_num++;
