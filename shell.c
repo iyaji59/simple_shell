@@ -11,12 +11,15 @@
 #include "2-getenv.c"
 #include "cd.c"
 #include "alias.c"
+
 #define MAX_COMMAND_LENGTH 100
 #define MAX_ARGS 10
+
 char exit_status_variable[16];
 void replace_variable(char *arg, const char *variable, const char *replacement) {
     char *variable_ptr = strstr(arg, variable);
-    if (variable_ptr != NULL) {
+    if (variable_ptr != NULL)
+    {
         char new_arg[MAX_COMMAND_LENGTH];
         strncpy(new_arg, arg, variable_ptr - arg);
         new_arg[variable_ptr - arg] = '\0';
