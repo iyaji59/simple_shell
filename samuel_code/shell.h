@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <stdio.h>
 
+
 #define END_OF_FILE -2
 #define EXIT -3
 

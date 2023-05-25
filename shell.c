@@ -1,10 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include "2-setenv.c"
 #include "shell.h"
 #include "2-strtok.c"
 #include "2-getline.c"
@@ -111,108 +104,88 @@ void execute_commands(char *command, char **args) {
                 int arg_count = parse_arguments(trimmed_command, trimmed_args);
                 execute_command(trimmed_command, trimmed_args);
             }
+=======
+>>>>>>> 8868df231eb2cbfdc1c7fb728015fb682fdfcb85
 
-            token = my_strtok(NULL, ";");
-        }
-    } else {
-        execute_command(command, args);
-    }
-}
-int parse_arguments(char *command, char **args) {
-    int i = 0;
-    char *token = my_strtok(command, " ");
+int status = 0;
 
-    while (token != NULL) {
-        args[i] = token;
-        i++;
-        token = my_strtok(NULL, " ");
-    }
+int line_num = 1;
 
-    args[i] = NULL;
+char *shell_name = NULL;
 
-    return i;
-}
 /**
- *
+ * main - entry point of terminal
+ * @ac: args count
+ * @av: args value
+ * Return: success or failure
  */
-void exit_shell(int status) {
-    exit(status);
-}
-/**
- *
- */
-int main() {
-    char *command = NULL;
-    size_t bufsize = 0;
-    ssize_t bytes_read;
+int main(__attribute__((unused))int ac, char **av)
+{
+	int bytes_read;
+	int is_separated = FALSE;
+	int i;
+	size_t buf_size = 1;
+	char *buf = NULL;
+	char *buf_ptr;
+	char *buf_tmp;
+	char **args = NULL;
 
-    while (1){
-        prompt();
-	bytes_read = my_getline(&command, &bufsize);
-        if (bytes_read == -1) {
-            break;
-        }
-        command[strcspn(command, "\n")] = '\0';
-        char *args[MAX_ARGS];
-        int arg_count = parse_arguments(command, args);
+	shell_name = _strdup(*av);
+	environ = array_cpy(environ, list_len(environ, NULL));
+	signal(SIGINT, SIG_IGN);
+	buf = malloc(1);
+	if (buf == NULL)
+		exit(EXIT_FAILURE);
 
-        if (arg_count > 0) {
-	     if (strcmp(args[0], "exit") == 0) {
-		 if (arg_count > 1) {
-                 int exit_status = atoi(args[1]);
-                 exit_shell(exit_status);
-                } else {
-                    // No exit status provided, exit with 0
-                    exit_shell(0);
-                }
-            }
-	     else if (strcmp(args[0], "setenv") == 0) {
-                // Set environment variable
-                if (arg_count != 3) {
-                    fprintf(stderr, "Usage: setenv VARIABLE VALUE\n");
-                } else {
-                    custom_setenv(args[1], args[2]);
-                }
-	     }
-	     else if (strcmp(args[0], "unsetenv") == 0) {
-                // Unset environment variable
-                if (arg_count != 2) {
-                    fprintf(stderr, "Usage: unsetenv VARIABLE\n");
-                } else {
-                    custom_unsetenv(args[1]);
-                }
-	     }
-	     if (strcmp(args[0], "cd") == 0) {
-    		if (arg_count > 1) {
-        		custom_cd(args[1]);
-    		} else {
-        		custom_cd(NULL);
-    		}
-    		continue;
-            }
-	     char *comment_ptr = strchr(command, '#');
-             if (comment_ptr != NULL) {
-                     *comment_ptr = '\0'; // Remove everything after the comment symbol
-            // Trim trailing whitespace
-                      int i = strlen(command) - 1;
-                       while (i >= 0 && command[i] == ' ') {
-                                   command[i] = '\0';
-                                        i--;
-                         }
-	     }
-	     if (strcmp(args[0], "alias") == 0) {
-                    process_alias_command(args);
-                         continue;
-             }
-            char *command_path = find_command(args[0]);
+	while (1)
+	{
+		if (is_separated == FALSE)
+		{
+			if (isatty(STDIN_FILENO) == 1)
+				write(STDOUT_FILENO, "my_shell$ ", 10);
 
-            if (command_path != NULL) {
-                execute_command(command_path, args);
-            } else {
-                fprintf(stderr, "Command not found: %s\n", args[0]);
-            }
-        }
-    }
-    free(command);
-    return 0;
+			bytes_read = getline(&buf, &buf_size, stdin);
+
+			if (bytes_read == -1)
+				break;
+			if (bytes_read == 1)
+			{
+				line_num++;
+				continue;
+			}
+			buf[bytes_read - 1] = '\0';
+			buf = input_san(buf, &buf_size);
+			if (buf_size == 0)
+			{
+				line_num++;
+				continue;
+			}
+			buf_ptr = buf;
+		}
+		else
+			buf_ptr = buf_tmp;
+
+		buf_tmp = NULL;
+		args = make_array(buf_ptr, ' ', &buf_tmp);
+		if (buf_tmp != NULL)
+			is_separated = TRUE;
+		else
+			is_separated = FALSE;
+
+		i = command_manager(args);
+
+		free(args);
+
+		if (is_separated == FALSE)
+			line_num++;
+
+		if (i == EXIT_SHELL)
+			break;
+	}
+	free(buf);
+	alias_func(NULL, TRUE);
+	free_array(environ);
+	free(shell_name);
+
+	return (status % 256);
 }
